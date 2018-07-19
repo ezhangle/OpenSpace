@@ -32,10 +32,12 @@
 #include <openspace/scripting/scriptengine.h>
 #include <openspace/scene/scene.h>
 #include <openspace/util/camera.h>
+#include <openspace/util/updatestructures.h>
 #include <openspace/util/factorymanager.h>
 #include <ghoul/filesystem/filesystem.h>
 #include <ghoul/opengl/programobject.h>
 #include <ghoul/opengl/textureunit.h>
+#include <ghoul/glm.h>
 
 namespace {
     constexpr const char* KeyType = "Type";
@@ -533,14 +535,34 @@ void ScreenSpaceRenderable::draw(glm::mat4 modelTransform) {
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
+    const Camera * camera = OsEng.renderEngine().scene()->camera();
+
+    glm::dmat4 screenToWorldTransform = glm::inverse(camera->combinedViewMatrix());
+
+    glm::dvec3 objectPositionWorld = glm::dvec3(
+        screenToWorldTransform * glm::dmat4(translationMatrix()) * glm::dvec4(0.0, 0.0, 0.0, 1.0)
+    );
+
+    glm::dvec3 normal = glm::normalize(camera->positionVec3() - objectPositionWorld);
+    glm::dvec3 newRight = glm::normalize(
+        glm::cross(camera->lookUpVectorWorldSpace(), normal)
+    );
+    glm::dvec3 newUp = glm::cross(normal, newRight);
+
+    glm::dmat4 cameraOrientedRotation;
+    cameraOrientedRotation[0] = glm::dvec4(newRight, 0.0);
+    cameraOrientedRotation[1] = glm::dvec4(newUp, 0.0);
+    cameraOrientedRotation[2] = glm::dvec4(normal, 0.0);
+
     _shader->activate();
     _shader->setUniform(_uniformCache.occlusionDepth, 1.f - _depth);
     _shader->setUniform(_uniformCache.alpha, _alpha);
-    _shader->setUniform(_uniformCache.modelTransform, modelTransform);
+    //_shader->setUniform(_uniformCache.modelTransform, modelTransform);
+    _shader->setUniform(_uniformCache.modelTransform, glm::mat4(cameraOrientedRotation * glm::dmat4(modelTransform)));
 
     _shader->setUniform(
         _uniformCache.viewProj,
-        OsEng.renderEngine().scene()->camera()->viewProjectionMatrix()
+        camera->viewProjectionMatrix()
     );
 
     ghoul::opengl::TextureUnit unit;

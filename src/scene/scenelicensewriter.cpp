@@ -24,11 +24,12 @@
 
 #include <openspace/scene/scenelicensewriter.h>
 
+#include <openspace/scene/scenelicense.h>
 #include <sstream>
 
 namespace openspace {
 
-SceneLicenseWriter::SceneLicenseWriter(const std::vector<SceneLicense>& licenses)
+SceneLicenseWriter::SceneLicenseWriter(std::vector<SceneLicense> licenses)
     : DocumentationGenerator(
         "Scene Licenses",
         "sceneLicense",
@@ -36,7 +37,7 @@ SceneLicenseWriter::SceneLicenseWriter(const std::vector<SceneLicense>& licenses
             { "sceneLicenseTemplate",  "${WEB}/documentation/scenelicense.hbs"}
         }
     )
-    , _licenses(licenses)
+    , _licenses(std::move(licenses))
 {}
 
 std::string SceneLicenseWriter::generateJson() const {
@@ -58,7 +59,7 @@ std::string SceneLicenseWriter::generateJson() const {
 
     json << "]";
 
-    std::string jsonString = "";
+    std::string jsonString;
     for (const char& c : json.str()) {
         if (c == '\'') {
             jsonString += "\\'";

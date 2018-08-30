@@ -23,13 +23,7 @@
  ****************************************************************************************/
 
 #include <openspace/util/factorymanager.h>
-#include <openspace/openspace.h>
 
-#include <ghoul/filesystem/filesystem.h>
-#include <ghoul/misc/assert.h>
-
-#include <iterator>
-#include <fstream>
 #include <sstream>
 
 namespace openspace {
@@ -55,11 +49,13 @@ FactoryManager::FactoryManager()
 
 void FactoryManager::initialize() {
     ghoul_assert(!_manager, "Factory Manager must not have been initialized");
+
     _manager = new FactoryManager;
 }
 
 void FactoryManager::deinitialize() {
     ghoul_assert(_manager, "Factory Manager must have been initialized");
+
     delete _manager;
     _manager = nullptr;
 }
@@ -70,13 +66,15 @@ bool FactoryManager::isInitialized() {
 
 FactoryManager& FactoryManager::ref() {
     ghoul_assert(_manager, "Factory Manager must have been initialized");
+
     return *_manager;
 }
 
 void FactoryManager::addFactory(std::unique_ptr<ghoul::TemplateFactoryBase> f,
-                                std::string name
-) {
+                                std::string name)
+{
     ghoul_assert(f, "Factory must not be nullptr");
+
     _factories.push_back({ std::move(f), std::move(name) });
 }
 

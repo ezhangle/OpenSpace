@@ -26,12 +26,8 @@
 
 #include <openspace/openspace.h>
 #include <openspace/util/time.h>
-
 #include <ghoul/filesystem/filesystem.h>
 #include <ghoul/misc/invariants.h>
-
-#include <ghoul/logging/logmanager.h>
-
 #include <fstream>
 
 namespace openspace {
@@ -61,7 +57,7 @@ std::string DocumentationGenerator::jsonName() {
 
     
 std::string escapedJson(const std::string& text) {
-    std::string jsonString = "";
+    std::string jsonString;
     for (const char& c : text) {
         switch (c) {
         case '\t':
